@@ -48,7 +48,7 @@ const ChatScreen = ({ route, navigation }) => {
     const otherUserId = route.params?.otherUserId;
     const matchId = route.params?.matchId;
     const matchData = route.params?.match;
-    
+
     // Create a user object from the route params
     const user = useMemo(() => {
         // If we have a user object directly, use it
@@ -56,7 +56,7 @@ const ChatScreen = ({ route, navigation }) => {
             console.log('Using provided user object:', route.params.user);
             return route.params.user;
         }
-        
+
         // Otherwise create a user object from the other parameters
         const userName = route.params?.userName || 'Unknown Contact';
         console.log('Creating user object with name:', userName);
@@ -76,7 +76,7 @@ const ChatScreen = ({ route, navigation }) => {
     const [serverUrl, setServerUrl] = useState(API_CONFIG.API_URL);
     const [isOnline, setIsOnline] = useState(false); // Track online status
     const [newMessage, setNewMessage] = useState('');
-    
+
     // Create a memoized API client that updates when serverUrl changes
     const apiClient = useMemo(() => createApiClient(serverUrl), [serverUrl]);
 
@@ -104,7 +104,7 @@ const ChatScreen = ({ route, navigation }) => {
     const getCurrentUserId = useCallback(async () => {
         try {
             const userData = await AsyncStorage.getItem('userData');
-            
+
             if (userData) {
                 const parsedUserData = JSON.parse(userData);
                 // Use _id if available, otherwise use id
@@ -131,9 +131,9 @@ const ChatScreen = ({ route, navigation }) => {
     // Fetch message history when both user IDs are available - optimized with useCallback
     const fetchMessages = useCallback(async () => {
         if (!currentUserId || (!user.id && !otherUserId)) return;
-        
+
         const chatPartnerId = otherUserId || user.id;
-        
+
         try {
             setLoading(true);
             const token = await AsyncStorage.getItem('authToken');
@@ -145,7 +145,7 @@ const ChatScreen = ({ route, navigation }) => {
                     }
                 }
             );
-            
+
             // Handle the new response format
             if (response.data && response.data.status === 'success' && Array.isArray(response.data.messages)) {
                 // Format messages for GiftedChat
@@ -201,14 +201,14 @@ const ChatScreen = ({ route, navigation }) => {
     // Setup Socket.IO connection - optimized with useCallback
     const setupSocketConnection = useCallback(() => {
         if (!currentUserId) return;
-        
+
         // Connect to the Socket.IO server
         const newSocket = io(serverUrl);
         setSocket(newSocket);
 
         // Join the room with the current user's ID
         newSocket.emit('joinRoom', currentUserId);
-        
+
         // Get the chat partner ID
         const chatPartnerId = otherUserId || user.id;
 
@@ -231,14 +231,14 @@ const ChatScreen = ({ route, navigation }) => {
                 setMessages(previousMessages => [...previousMessages, newMessage]);
             }
         });
-        
+
         return newSocket;
     }, [currentUserId, user, otherUserId, serverUrl]);
 
     // Setup and cleanup socket connection
     useEffect(() => {
         const newSocket = setupSocketConnection();
-        
+
         return () => {
             if (newSocket) {
                 newSocket.disconnect();
@@ -279,7 +279,7 @@ const ChatScreen = ({ route, navigation }) => {
         }
 
         const chatPartnerId = otherUserId || user.id;
-        
+
         // Format the message for GiftedChat
         const giftedMessage = {
             _id: Math.random().toString(),
@@ -323,7 +323,7 @@ const ChatScreen = ({ route, navigation }) => {
     }, [socket, user, currentUserId, otherUserId, apiClient]);
 
     // Custom StatusBar component to ensure visibility
-    const CustomStatusBar = ({backgroundColor, ...props}) => (
+    const CustomStatusBar = ({ backgroundColor, ...props }) => (
         <View style={[styles.statusBar, { backgroundColor }]}>
             <StatusBar translucent backgroundColor={backgroundColor} {...props} />
         </View>
@@ -332,12 +332,12 @@ const ChatScreen = ({ route, navigation }) => {
     // Function to get the first letter of the name for avatar placeholder
     const getInitials = (name) => {
         if (!name) return '??';
-        
+
         const parts = name.split(' ');
         if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
-        
+
         return (
-            parts[0].charAt(0).toUpperCase() + 
+            parts[0].charAt(0).toUpperCase() +
             parts[parts.length - 1].charAt(0).toUpperCase()
         );
     };
@@ -355,46 +355,46 @@ const ChatScreen = ({ route, navigation }) => {
     return (
         <View style={styles.container}>
             <StatusBar backgroundColor="#3d0c45" barStyle="light-content" translucent={true} />
-            
+
             {/* Main SafeArea wrapper with status bar padding */}
             <SafeAreaView style={styles.safeTopArea} />
-            
+
             {/* Enhanced Chat Header - Outside SafeAreaView to allow custom padding */}
             <View style={styles.header}>
                 <View style={styles.headerLeft}>
-                    <TouchableOpacity 
-                        style={styles.backButton} 
+                    <TouchableOpacity
+                        style={styles.backButton}
                         onPress={() => navigation.goBack()}
-                        hitSlop={{top: 15, bottom: 15, left: 15, right: 15}}
+                        hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
                     >
                         <Ionicons name="arrow-back" size={28} color="#fff" />
                     </TouchableOpacity>
-                    
+
                     <View style={styles.userInfoContainer}>
                         {user.avatar ? (
-                            <Image source={{uri: user.avatar}} style={styles.avatar} />
+                            <Image source={{ uri: user.avatar }} style={styles.avatar} />
                         ) : (
                             <View style={styles.avatarPlaceholder}>
                                 <Text style={styles.avatarText}>{getInitials(user.name)}</Text>
                             </View>
                         )}
-                        
+
                         <View style={styles.userTextInfo}>
                             <Text style={styles.userName} numberOfLines={1}>{user.name}</Text>
                             <View style={styles.statusContainer}>
-                                <View style={[styles.statusDot, {backgroundColor: isOnline ? '#4caf50' : '#bdbdbd'}]} />
+                                <View style={[styles.statusDot, { backgroundColor: isOnline ? '#4caf50' : '#bdbdbd' }]} />
                                 <Text style={styles.statusText}>{isOnline ? 'Online' : 'Offline'}</Text>
                             </View>
                         </View>
                     </View>
                 </View>
-                
+
                 <View style={styles.headerRight}>
                     {matchId && (
-                        <TouchableOpacity 
+                        <TouchableOpacity
                             style={styles.matchInfoButton}
                             onPress={showMatchDetails}
-                            hitSlop={{top: 15, bottom: 15, left: 15, right: 15}}
+                            hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
                         >
                             <Ionicons name="information-circle" size={28} color="#fff" />
                         </TouchableOpacity>
@@ -411,13 +411,13 @@ const ChatScreen = ({ route, navigation }) => {
                         <Text style={styles.loadingText}>Loading messages...</Text>
                     </View>
                 )}
-                
+
                 {/* Error State */}
                 {error && !loading && (
                     <View style={styles.errorContainer}>
                         <Ionicons name="alert-circle" size={50} color="#f44336" />
                         <Text style={styles.errorText}>{error}</Text>
-                        <TouchableOpacity 
+                        <TouchableOpacity
                             style={styles.retryButton}
                             onPress={fetchMessages}
                         >
@@ -425,7 +425,7 @@ const ChatScreen = ({ route, navigation }) => {
                         </TouchableOpacity>
                     </View>
                 )}
-                
+
                 {/* Chat Messages */}
                 {!loading && !error && (
                     <KeyboardAvoidingView
@@ -458,7 +458,7 @@ const ChatScreen = ({ route, navigation }) => {
                                     onChangeText={setNewMessage}
                                     multiline
                                 />
-                                <TouchableOpacity 
+                                <TouchableOpacity
                                     style={styles.sendButton}
                                     onPress={() => {
                                         if (newMessage.trim()) {
